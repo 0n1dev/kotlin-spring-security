@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.security.web.authentication.logout.LogoutHandler
+import javax.servlet.http.HttpSession
 
 @Configuration
 @EnableWebSecurity
@@ -19,21 +21,18 @@ class SecurityConfig {
             .authenticated()
 
         http.formLogin()
-//            .loginPage("/loginPage")
-            .defaultSuccessUrl("/")
-            .failureUrl("/login")
-            .usernameParameter("userId")
-            .passwordParameter("passwd")
-            .loginProcessingUrl("/login_proc")
-            .successHandler { request, response, authentication ->
-                println(authentication.name)
-                response.sendRedirect("/")
+
+        http.logout()
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/login")
+            .addLogoutHandler { request, response, authentication ->
+                val session: HttpSession = request.session
+                session.invalidate()
             }
-            .failureHandler { request, response, exception ->
-                println(exception.message)
+            .logoutSuccessHandler { request, response, authentication ->
                 response.sendRedirect("/login")
             }
-            .permitAll()
+            .deleteCookies("remember-me")
 
         return http.build()
     }
