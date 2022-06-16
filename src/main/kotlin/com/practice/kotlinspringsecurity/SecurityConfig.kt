@@ -5,16 +5,27 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import javax.servlet.http.HttpSession
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig @Autowired constructor(
-    private val userDetailsService: UserDetailsService
-) {
+class SecurityConfig {
+
+    @Bean
+    fun userDetailsService() : InMemoryUserDetailsManager {
+        val user: UserDetails = User.withDefaultPasswordEncoder()
+            .username("user")
+            .password("1111")
+            .roles("USER")
+            .build();
+
+        return InMemoryUserDetailsManager(user)
+    }
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -39,7 +50,7 @@ class SecurityConfig @Autowired constructor(
         http.rememberMe()
             .rememberMeParameter("remember-me")
             .tokenValiditySeconds(3600)
-            .userDetailsService(userDetailsService)
+            .userDetailsService(userDetailsService())
 
         return http.build()
     }
